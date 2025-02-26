@@ -1,0 +1,21 @@
+[submodule "kmer_counting_tools/Jellyfish"]
+    path = kmer_counting_tools/Jellyfish
+    url = https://github.com/gmarcais/Jellyfish.git
+
+[submodule "kmer_counting_tools/KCOSS"]
+    path = kmer_counting_tools/KCOSS
+    url = https://github.com/kcoss-2021/KCOSS.git
+    ignore = untracked
+
+[submodule "kmer_counting_tools/KMC"]
+    path = kmer_counting_tools/KMC
+    url = https://github.com/refresh-bio/KMC.git
+    
+[submodule "kmer_counting_tools/gerbil"]
+    path = kmer_counting_tools/gerbil
+    url = https://github.com/uni-halle/gerbil.git
+    ignore = untracked
+
+[submodule "kmer_counting_tools/meryl"]
+    path = kmer_counting_tools/meryl
+    url = https://github.com/marbl/meryl.git
