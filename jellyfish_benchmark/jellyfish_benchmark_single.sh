@@ -5,28 +5,38 @@
 #SBATCH --cpus-per-task=24
 #SBATCH --output=./logs/%x_%j.log
 #SBATCH --error=./logs/%x_%j.err
-#SBATCH --partition=sla-prio
-#SBATCH --account=izg5139_hc
+#SBATCH --partition=himem
+#SBATCH --account=izg5139_cr_default
 
 # Add the relative binaries directory to PATH
 export PATH="../binaries:$PATH"
 
-# Set variables8
+# Set variables
 SLURM_CPUS=24
 SLURM_MEM=64
-WORKING_DIR="../working_dir"      # Working directory (preprocessed data)
+WORKING_DIR="/scratch/kap6605/jellyfish_bench"      # Working directory (preprocessed data)
 INPUT_FILES="../input_files"
 SCRIPTS_DIR="../scripts"
 
 # Create needed directories
-mkdir -p "${WORKING_DIR}/fastas"
+
 
 # Accept parameters from the command line
 FILE_NAME="$1"
 KMER_SIZE="$2"
+PARAMS="$3"
+
+if [[ "${FILE_NAME}" == "chm13_part1.maf" ]]; then
+            FASTA_DIR="small_fastas"
+elif [[ "${FILE_NAME}" == "chm13_part1_through_10.maf" ]]; then
+    FASTA_DIR="large_fastas"
+else
+    echo "Error: unrecognized file_name '${file_name}'" >&2
+    exit 1
+fi
 
 # Print them for logging clarity
-echo "Running single-file Jellyfish job with:"
+echo "Running single-file jellyfish job with:"
 echo "  - FILE_NAME: ${FILE_NAME}"
 echo "  - KMER_SIZE: ${KMER_SIZE}"
 echo "  - SLURM_CPUS: ${SLURM_CPUS}"
@@ -37,43 +47,40 @@ run_jellyfish() {
     local kmer_size="$2"   # k-mer size
     local cpus="$3"        # Number of CPUs
     local mem="$4"         # Memory in GB
-    
+
     echo "Starting jellyfish benchmark for ${file_name} with k=${kmer_size}"
+
     
-    # Convert MAF to FASTA
-    echo "Running MAF to FASTA script..."
-    python3 "${SCRIPTS_DIR}/maf_to_fasta.py" \
-            "${INPUT_FILES}/${file_name}" \
-            "${WORKING_DIR}/fastas"
 
     # Run jellyfish count for each FASTA file
-    echo "Running k-mer counting for each FASTA file in ${WORKING_DIR}/fastas"
-    for fasta_file in "${WORKING_DIR}/fastas"/*.fasta; do
+    echo "Running k-mer counting for each FASTA file in ${INPUT_FILES}/${FASTA_DIR}"
+    for fasta_file in "${INPUT_FILES}/${FASTA_DIR}"/*.fasta; do
         [ -e "$fasta_file" ] || continue
         local fasta_basename
         fasta_basename=$(basename "$fasta_file" .fasta)
+
+        local res_output="jellyfish_${file_name}_${fasta_basename}_${kmer_size}mers"
+
+        if [[ "${PARAMS}" == "DEFAULT" ]]; then
+            echo "Processing file with default params: $fasta_file"
+             jellyfish count \
+                -m "${kmer_size}" \
+                --lower-count 1 \
+                -s 1000M \
+                -o "${WORKING_DIR}/${res_output}" \
+                "${fasta_file}"
+        else
+            echo "Processing file with optimized params: $fasta_file"
+                jellyfish count \
+                -m "${kmer_size}" \
+                --lower-count 1 \
+                -s 3000M \
+                -t "${cpus}" \
+                -o "${WORKING_DIR}/${res_output}" \
+                "${fasta_file}"
+        fi
         
-        local jf_output="${WORKING_DIR}/jellyfish_${file_name}_${fasta_basename}_${kmer_size}mers.jf"
-        
-        echo "Processing file: $fasta_file"
-        
-        # Record start time in seconds
-        start_time=$(date +%s)
-        
-        jellyfish count \
-            -m "${kmer_size}" \
-            -s 1000M \
-            -t "${cpus}" \
-            -o "${jf_output}" \
-            "${fasta_file}"
-        
-        # Record end time in seconds
-        end_time=$(date +%s)
-        
-        # Calculate elapsed time in seconds
-        elapsed_time=$(( end_time - start_time ))
-        
-        echo "Jellyfish count for ${fasta_file} took ${elapsed_time} seconds."
+          
     done
 
     echo "Completed jellyfish benchmark for ${file_name} with k=${kmer_size}"

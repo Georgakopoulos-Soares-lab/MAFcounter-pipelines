@@ -5,8 +5,8 @@
 #SBATCH --cpus-per-task=24
 #SBATCH --output=./logs/%x_%j.log
 #SBATCH --error=./logs/%x_%j.err
-#SBATCH --partition=sla-prio
-#SBATCH --account=izg5139_hc
+#SBATCH --partition=himem
+#SBATCH --account=izg5139_cr_default
 
 # Add the relative binaries directory to PATH
 export PATH="../binaries:$PATH"
@@ -14,16 +14,26 @@ export PATH="../binaries:$PATH"
 # Set variables
 SLURM_CPUS=24
 SLURM_MEM=64
-WORKING_DIR="../working_dir"      # Working directory (preprocessed data)
+WORKING_DIR="/scratch/kap6605/kmc_bench"      # Working directory (preprocessed data)
 INPUT_FILES="../input_files"
 SCRIPTS_DIR="../scripts"
 
 # Create needed directories
-mkdir -p "${WORKING_DIR}/fastas"
+
 
 # Accept parameters from the command line
 FILE_NAME="$1"
 KMER_SIZE="$2"
+PARAMS="$3"
+
+if [[ "${FILE_NAME}" == "chm13_part1.maf" ]]; then
+            FASTA_DIR="small_fastas"
+elif [[ "${FILE_NAME}" == "chm13_part1_through_10.maf" ]]; then
+    FASTA_DIR="large_fastas"
+else
+    echo "Error: unrecognized file_name '${file_name}'" >&2
+    exit 1
+fi
 
 # Print them for logging clarity
 echo "Running single-file kmc job with:"
@@ -37,43 +47,47 @@ run_kmc() {
     local kmer_size="$2"   # k-mer size
     local cpus="$3"        # Number of CPUs
     local mem="$4"         # Memory in GB
-    
+
     echo "Starting kmc benchmark for ${file_name} with k=${kmer_size}"
+
     
-    # Convert MAF to FASTA
-    echo "Running MAF to FASTA script..."
-    python3 "${SCRIPTS_DIR}/maf_to_fasta.py" \
-            "${INPUT_FILES}/${file_name}" \
-            "${WORKING_DIR}/fastas"
 
     # Run kmc count for each FASTA file
-    echo "Running k-mer counting for each FASTA file in ${WORKING_DIR}/fastas"
-    for fasta_file in "${WORKING_DIR}/fastas"/*.fasta; do
+    echo "Running k-mer counting for each FASTA file in ${INPUT_FILES}/${FASTA_DIR}"
+    for fasta_file in "${INPUT_FILES}/${FASTA_DIR}"/*.fasta; do
         [ -e "$fasta_file" ] || continue
         local fasta_basename
         fasta_basename=$(basename "$fasta_file" .fasta)
-        
-        local res_output="${WORKING_DIR}/kmc_${file_name}_${fasta_basename}_${kmer_size}mers.res"
-        
-        echo "Processing file: $fasta_file"
-        kmc \
-            -k"${kmer_size}" \
-            -ci1 \
-            -b \
-            -r \
-            -t"${cpus}" \
-            -cs4294967296 \
-            -fm \
-            "${fasta_file}" \
-            "${res_output}" \
-            "${WORKING_DIR}"
-        
-        # Searching for kmc bin files in CWD
-        echo "Searching for remnant bin files in working dir: "
-        ls ${WORKING_DIR}/ | grep ".bin"
-        echo "Removing remnant bin files in working dir: "
-        rm ${WORKING_DIR}/kmc_*.bin
 
+        local res_output="${WORKING_DIR}/kmc_${file_name}_${fasta_basename}_${kmer_size}mers.out"
+
+        if [[ "${PARAMS}" == "DEFAULT" ]]; then
+            echo "Processing file with default params: $fasta_file"
+            kmc \
+                -k"${kmer_size}" \
+                -ci1 \
+                -b \
+                -cs4294967296 \
+                -fm \
+                "${fasta_file}" \
+                "${res_output}" \
+                "${WORKING_DIR}"
+        else
+            echo "Processing file with optimized params: $fasta_file"
+            kmc \
+                -k"${kmer_size}" \
+                -ci1 \
+                -b \
+                -r \
+                -t"${cpus}" \
+                -cs4294967296 \
+                -fm \
+                "${fasta_file}" \
+                "${res_output}" \
+                "${WORKING_DIR}"
+        fi
+        
+          
     done
 
     echo "Completed kmc benchmark for ${file_name} with k=${kmer_size}"

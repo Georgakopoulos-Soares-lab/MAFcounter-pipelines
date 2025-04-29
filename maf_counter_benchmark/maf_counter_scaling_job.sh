@@ -1,15 +1,15 @@
 #!/bin/bash
-#SBATCH --job-name=maf_counter_scaling
+#SBATCH --job-name=maf_counter_proteomes_scaling
 #SBATCH --time=24:00:00
 #SBATCH --mem=64G
 #SBATCH --cpus-per-task=30
 #SBATCH --output=./logs/%x_%j.log
 #SBATCH --error=./logs/%x_%j.err
-#SBATCH --partition=sla-prio
-#SBATCH --account=izg5139_hc
+#SBATCH --partition=himem
+#SBATCH --account=izg5139_cr_default
 
 # Set directories (adjust as needed)
-WORKING_DIR="../working_dir"      # For intermediate and output files
+WORKING_DIR="/scratch/kap6605/maf_counter"      # For intermediate and output files
 INPUT_FILES="../input_files"       # Directory containing input MAF files
 export PATH="../binaries:$PATH"
 
@@ -36,15 +36,13 @@ run_maf_counter() {
     # Construct output file name (e.g., maf_counter_chm13_part1.maf_10mers_10cores.out)
     local base_name
     base_name=$(basename "$file_name")
-    local output_file="${WORKING_DIR}/maf_counter_${base_name}_${kmer_size}mers_${total_cores}cores.out"
+    local output_file="${WORKING_DIR}/maf_counter_proteomes_${base_name}_${kmer_size}mers_${total_cores}cores.out"
     
     start_time=$(date +%s)
     
-    maf_counter_count --binary_file_output "${output_file}" \
+    maf_counter_count_proteomes --binary_file_output "${output_file}" \
                        --k "${kmer_size}" \
                        --threads "${total_cores}" \
-                       --temp_files_dir "${WORKING_DIR}" \
-                       --output_directory "${WORKING_DIR}" \
                        "${INPUT_FILES}/${file_name}"
     
     end_time=$(date +%s)

@@ -1,0 +1,33 @@
+\documentclass{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{adjustbox}
+\begin{document}
+
+\noindent
+\setlength{\tabcolsep}{1pt}
+\scriptsize
+\begin{adjustbox}{max width=\textwidth, max totalheight=\textheight, keepaspectratio}
+\begin{tabular}{@{}|c|c|c|c|c|c|c|c|c|c|c|c|c|}
+\hline
+\textbf{Program} & \multicolumn{3}{c|}{\textbf{K=10}} & \multicolumn{3}{c|}{\textbf{K=20}} & \multicolumn{3}{c|}{\textbf{K=30}} & \multicolumn{3}{c|}{\textbf{K=55}} \\
+\hline
+ & \textbf{\hspace{2pt}Time\hspace{2pt}} & \textbf{\hspace{2pt}RAM\hspace{2pt}} & \textbf{\hspace{2pt}Disk\hspace{2pt}} & \textbf{\hspace{2pt}Time\hspace{2pt}} & \textbf{\hspace{2pt}RAM\hspace{2pt}} & \textbf{\hspace{2pt}Disk\hspace{2pt}} & \textbf{\hspace{2pt}Time\hspace{2pt}} & \textbf{\hspace{2pt}RAM\hspace{2pt}} & \textbf{\hspace{2pt}Disk\hspace{2pt}} & \textbf{\hspace{2pt}Time\hspace{2pt}} & \textbf{\hspace{2pt}RAM\hspace{2pt}} & \textbf{\hspace{2pt}Disk\hspace{2pt}} \\
+\hline
+\textit{MAFCounter} & 29 & 0 & 417 & 28 & 0 & 19,466 & 35 & 12,170 & 28,243 & 47 & 21,636 & 40,890 \\
+\hline
+\textit{dsk} & 162 & 282 & 4,010 & 274 & 710 & 3,744 & 199 & 635 & 2,738 & 256 & 436 & 2,761 \\
+\hline
+\textit{gerbil} & 109 & 191 & 2,989 & 108 & 166 & 8,273 & 117 & 164 & 16,811 & 124 & 166 & 25,807 \\
+\hline
+\textit{jellyfish} & 68 & 3 & 398 & 341 & 12,002 & 14,271 & 431 & 22,542 & 20,304 & 694 & 49,166 & 32,206 \\
+\hline
+\textit{kcoss} & 25 & 0 & 559 & 491 & 25,899 & 680 & 494 & 25,810 & 715 & 786 & 30,527 & 867 \\
+\hline
+\textit{kmc} & 68 & 258 & 282 & 129 & 174 & 11,048 & 150 & 238 & 18,178 & 65 & 123 & 20,338 \\
+\hline
+\textit{meryl} & 86 & 393 & 331 & 124 & 774 & 8,906 & 124 & 973 & 13,077 & 126 & 524 & 23,007 \\
+\hline
+\end{tabular}
+\end{adjustbox}
+
+\end{document}

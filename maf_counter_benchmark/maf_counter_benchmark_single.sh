@@ -5,15 +5,16 @@
 #SBATCH --cpus-per-task=24
 #SBATCH --output=./logs/%x_%j.log
 #SBATCH --error=./logs/%x_%j.err
-#SBATCH --partition=sla-prio
-#SBATCH --account=izg5139_hc
+#SBATCH --partition=himem
+#SBATCH --account=izg5139_cr_default
+
 
 # Add the relative binaries directory to PATH
 export PATH="../binaries:$PATH"
 
 # Set variables
 SLURM_CPUS=24
-WORKING_DIR="../working_dir"      # Working directory (for intermediate and output files)
+WORKING_DIR="/scratch/kap6605/maf_counter"      # Working directory (for intermediate and output files)
 INPUT_FILES="../input_files"       # Directory containing input MAF files
 
 # Accept parameters from the command line:
@@ -23,7 +24,7 @@ FILE_NAME="$1"
 KMER_SIZE="$2"
 
 # Print parameters for logging
-echo "Running single-file maf_counter_count8 job with:"
+echo "Running single-file maf_counter_count job with:"
 echo "  - FILE_NAME: ${FILE_NAME}"
 echo "  - KMER_SIZE: ${KMER_SIZE}"
 echo "  - Using 16 reader threads and 8 package manager threads"
@@ -32,12 +33,12 @@ run_maf_counter() {
     local file_name="$1"   # Input MAF file name
     local kmer_size="$2"   # k-mer size
 
-    echo "Starting maf_counter_count8 benchmark for ${file_name} with k=${kmer_size}"
+    echo "Starting maf_counter_count benchmark for ${file_name} with k=${kmer_size}"
     
     # Construct the output file name using the base name of the input file and k-mer info.
     local base_name
     base_name=$(basename "$file_name")
-    local mc_output="${WORKING_DIR}/maf_counter_${base_name}_${kmer_size}mers.out"
+    local mc_output="maf_counter_${base_name}_${kmer_size}mers.out"
     
     echo "Processing MAF file: ${file_name}"
     
@@ -52,8 +53,8 @@ run_maf_counter() {
     #  --output_directory: directory for final output files.
     maf_counter_count --binary_file_output "${mc_output}" \
                        --k "${kmer_size}" \
-                       --reader_threads 16 \
-                       --package_manager_threads 8 \
+                       --reader_threads 7 \
+                       --package_manager_threads 17 \
                        --temp_files_dir "${WORKING_DIR}" \
                        --output_directory "${WORKING_DIR}" \
                        "${INPUT_FILES}/${file_name}"
@@ -64,7 +65,7 @@ run_maf_counter() {
     # Calculate elapsed time in seconds
     elapsed_time=$(( end_time - start_time ))
     
-    echo "maf_counter_count8 for ${file_name} took ${elapsed_time} seconds."
+    echo "maf_counter_count for ${file_name} took ${elapsed_time} seconds."
     echo "Output written to ${mc_output}"
 }
 

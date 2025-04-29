@@ -4,8 +4,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 
-# Increase all font sizes by 1.35 times the default.
-mpl.rcParams.update({'font.size': mpl.rcParams['font.size'] * 1.35})
+# Increase all font sizes by 1.35 * 1.25 = 1.6875 times the original default
+mpl.rcParams.update({'font.size': mpl.rcParams['font.size'] * 1.25})
 
 def elapsed_to_seconds(elapsed_str):
     """Convert a HH:MM:SS string to total seconds."""
@@ -49,19 +49,20 @@ def plot_scaling(df, filename, metric, ylabel, output_file):
     """
     df_file = df[df['filename'] == filename]
     k_values = sorted(df_file['k'].unique())
-    
+
     plt.figure(figsize=(10, 6))
     for k in k_values:
         df_k = df_file[df_file['k'] == k].sort_values('cores')
         plt.plot(df_k['cores'], df_k[metric], marker='o', label=f"k={k}")
-    
+
     plt.xlabel("Cores")
     plt.ylabel(ylabel)
     plt.title(f"{filename} - {ylabel} Scaling")
     plt.xticks(sorted(df_file['cores'].unique()))
     plt.legend(loc="best")
+    plt.grid(True, linestyle='--', alpha=0.7)
     plt.tight_layout()
-    plt.savefig(output_file)
+    plt.savefig(output_file, dpi=600)
     plt.close()
     print(f"Saved plot: {output_file}")
 
@@ -69,10 +70,10 @@ def main():
     # Path to the CSV file (adjust if needed)
     csv_path = "/storage/group/izg5139/default/multiple_alignment/maf_counter_migration/pipelines/maf_counter_benchmark/results_scaling/job_resources_scaling.csv"
     df = load_data(csv_path)
-    
+
     # Get unique input filenames
     filenames = df['filename'].unique()
-    
+
     # For each input file, generate two plots: memory and time scaling.
     for fname in filenames:
         # Memory plot
